@@ -4,13 +4,13 @@ export default {
   input: "src/index.js",
   output: {
     dir: "dist",
-    format: "iife",
-    name: "__TEST",
+    format: "umd",
   },
   plugins: [
     html({
       template: "src/main.html",
-      target: "index.html",
+      target: "dist/index.html",
+      embedContent: true,
     }),
   ],
 };

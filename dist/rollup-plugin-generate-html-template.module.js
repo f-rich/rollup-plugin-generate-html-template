@@ -3774,22 +3774,34 @@ function htmlTemplate(options = {}) {
           ].join("");
           const bodyCloseTag = injected.lastIndexOf("</body>"); // Inject the script tags before the body close tag
 
+          const mapSrc = bundleKeys
+            .filter(f => path.extname(f) === ".js")
+            .map(b => ({
+              path: b,
+              src: `<script ${scriptTagAttributes.join(
+                " "
+              )} src="${bundleDirString}${prefix || ""}${b}"></script>\n`,
+            }));
+
+          if (options.embedContent) {
+            const loadjssrc = mapSrc.map(
+              async b =>
+                await lib.readFile(
+                  `${outputDir}${path.sep}${prefix || ""}${b.path}`
+                )
+            );
+            const asyncRes = await Promise.all(loadjssrc);
+            mapSrc.forEach((b, i) => {
+              const src = asyncRes[i].toString("utf-8");
+              b.src = `<script ${scriptTagAttributes.join(
+                " "
+              )}>${src}</script>\n`;
+            });
+          }
+
           injected = [
             injected.slice(0, bodyCloseTag),
-            ...bundleKeys
-              .filter(f => path.extname(f) === ".js")
-              .map(async (
-                b // For embedContent option, stuff bundle content into HTML directly,
-              ) =>
-                // otherwise, prepare script with src tag only.
-                options.embedContent
-                  ? `<script>\n${await lib.readFile(
-                      `${outputDir}${path.sep}${prefix || ""}${b}`
-                    )}\n</script>`
-                  : `<script ${scriptTagAttributes.join(
-                      " "
-                    )} src="${bundleDirString}${prefix || ""}${b}"></script>\n`
-              ),
+            ...mapSrc.map(b => b.src),
             injected.slice(bodyCloseTag, injected.length),
           ].join(""); // write the injected template to a file
 
