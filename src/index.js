@@ -17,8 +17,14 @@ export default function htmlTemplate(options = {}) {
   const scriptTagAttributes = attrs && attrs.length > 0 ? attrs : [];
   return {
     name: "html-template",
-
-    async generateBundle(outputOptions, bundleInfo) {
+    /*
+      This plugin used to hook into generateBundle but the trouble with that (for the embedContent=true option) is that the code (below) to read the 
+      bundle file would run before the file was actually written so you'd get a 'file not found' exception PLUS if the
+      file did exist e.g. it had been generated previously, then there was a danger that you'd embed out-of-date code...
+      ...which is a different kind of bad.
+      I haven't gone through the rest of the code with a fine-tooth comb but it seems to work for my current purpose, however YMMV.
+    */
+    async writeBundle(outputOptions, bundleInfo) {
       const bundleKeys = Object.keys(bundleInfo);
       return new Promise(async (resolve, reject) => {
         try {
@@ -98,9 +104,11 @@ export default function htmlTemplate(options = {}) {
             const asyncRes = await Promise.all(loadjssrc);
             mapSrc.forEach((b, i) => {
               const src = asyncRes[i].toString("utf-8");
-              b.src = `<script ${scriptTagAttributes.join(
-                " "
-              )}>${src}</script>\n`;
+              b.src = `<script${
+                scriptTagAttributes.length > 0
+                  ? "" + scriptTagAttributes.join(" ")
+                  : ""
+              }>${src.trim()}</script>\n`;
             });
           }
 

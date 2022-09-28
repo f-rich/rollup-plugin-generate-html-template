@@ -61,7 +61,8 @@
     "rollup-plugin-commonjs": "^10.0.0",
     "rollup-plugin-node-resolve": "^5.0.0",
     "rollup-plugin-postcss": "^3.1.2",
-    "standard": "^16.0.4"
+    "standard": "^16.0.4",
+    "yarn": "^1.22.19"
   },
   "peerDependencies": {
     "rollup": ">=1.1.2"
